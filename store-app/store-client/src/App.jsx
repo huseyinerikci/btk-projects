@@ -11,7 +11,8 @@ import ServerError from "./pages/errors/ServerError";
 import NotFound from "./pages/errors/NotFound";
 import { useEffect } from "react";
 import requests from "./api/apiClient";
-import { useCartContext } from "./context/CartContext";
+import { useDispatch } from "react-redux";
+import { setCart } from "./redux/slices/cartSlice";
 
 export const router = createBrowserRouter([
   {
@@ -44,11 +45,11 @@ export const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  const { setCart } = useCartContext();
+  const dispatch = useDispatch();
   useEffect(() => {
     requests.cart
       .get()
-      .then((cart) => setCart(cart))
+      .then((cart) => dispatch(setCart(cart)))
       .catch((error) => console.log(error));
   }, []);
   return <RouterProvider router={router} />;

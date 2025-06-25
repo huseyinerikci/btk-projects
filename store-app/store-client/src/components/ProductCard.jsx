@@ -13,21 +13,13 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { Link } from "react-router";
 import { currenyTRY } from "../utils/formats";
-import requests from "../api/apiClient";
-import { useState } from "react";
-import { useCartContext } from "../context/CartContext";
+import { useDispatch, useSelector } from "react-redux";
+import { addItemToCart } from "../redux/slices/cartSlice";
 
 const ProductCard = ({ product }) => {
-  const [loading, setLoading] = useState(false);
-  const { setCart } = useCartContext();
-  function handleAddItem(productId) {
-    setLoading(true);
-    requests.cart
-      .addItem(productId)
-      .then((cart) => setCart(cart))
-      .catch((error) => console.log(error))
-      .finally(() => setLoading(false));
-  }
+  const { status } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+
   return (
     <Card>
       <CardActionArea component={Link} to={"/products/" + product.id}>
@@ -55,8 +47,14 @@ const ProductCard = ({ product }) => {
           {/* <FavoriteIcon /> */}
           <FavoriteBorderIcon />
         </IconButton>
-        <Button onClick={() => handleAddItem(product.id)}>
-          {loading ? <CircularProgress size="20px" /> : "Sepete Ekle"}
+        <Button
+          onClick={() => dispatch(addItemToCart({ productId: product.id }))}
+        >
+          {status === "pendingAddItem" + product.id ? (
+            <CircularProgress size="20px" />
+          ) : (
+            "Sepete Ekle"
+          )}
         </Button>
       </CardActions>
     </Card>

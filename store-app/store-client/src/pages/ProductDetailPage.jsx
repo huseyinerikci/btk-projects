@@ -2,46 +2,34 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import ProductItem from "../components/ProductItem";
 import Loading from "../components/Loading";
-import requests from "../api/apiClient";
-import { useCartContext } from "../context/CartContext";
+import { useDispatch, useSelector } from "react-redux";
+import { addItemToCart } from "../redux/slices/cartSlice";
+import {
+  fetchProductById,
+  selectProductById,
+} from "../redux/slices/catalogSlice";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [isAdding, setIsAdding] = useState(false);
-  const [product, setProduct] = useState(null);
-  const { cart, setCart } = useCartContext();
+  const { cart, status } = useSelector((state) => state.cart);
+  const product = useSelector((state) => selectProductById(state, id));
+  const { status: loading } = useSelector((state) => state.catalog);
+  const dispatch = useDispatch();
 
   const cartItem = cart?.cartItems.find(
     (i) => i.product.productId == product?.id
   );
 
   function handleAddItem(productId) {
-    setIsAdding(true);
-
-    requests.cart
-      .addItem(productId)
-      .then((cart) => setCart(cart))
-      .catch((error) => console.log(error))
-      .finally(() => setIsAdding(false));
+    dispatch(addItemToCart({ productId: productId }));
   }
 
   useEffect(() => {
-    async function fetchProductDetails() {
-      try {
-        const data = await requests.products.details(id);
-        setProduct(data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchProductDetails();
+    if (!product && id) dispatch(fetchProductById(id));
   }, [id]);
 
-  if (loading) return <Loading message="Yükleniyor..." />;
+  if (loading === "pendingFetchProductById")
+    return <Loading message="Yükleniyor..." />;
 
   if (!product) return <h1>Ürün bulunamadı.</h1>;
 
@@ -50,7 +38,7 @@ const ProductDetailPage = () => {
       product={product}
       handleAddItem={handleAddItem}
       cartItem={cartItem}
-      isAdding={isAdding}
+      isAdding={status === "pendingAddItem" + product.id}
     />
   );
 };
