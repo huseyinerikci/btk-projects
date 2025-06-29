@@ -1,9 +1,20 @@
-import { AppBar, Badge, Box, Button, IconButton, Toolbar } from "@mui/material";
+import {
+  AppBar,
+  Badge,
+  Box,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+} from "@mui/material";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import { Link, NavLink } from "react-router";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/slices/accountSlice";
+import { KeyboardArrowDown } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 
 const links = [
   { title: "Home", to: "/" },
@@ -23,6 +34,21 @@ const Navbar = () => {
     (total, item) => total + item.product.quantity,
     0
   );
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    setAnchorEl(null);
+  }, [user]);
+
+  function handleClick(event) {
+    setAnchorEl(event.currentTarget);
+  }
+
+  function handleClose() {
+    setAnchorEl(null);
+  }
   return (
     <AppBar position="static" sx={{ backgroundColor: "secondary" }}>
       <Toolbar>
@@ -57,10 +83,26 @@ const Navbar = () => {
 
           {user ? (
             <>
-              <Button color="inherit">{user.username}</Button>
-              <Button color="inherit" onClick={() => dispatch(logout())}>
-                Logout
+              <Button
+                id="user-button"
+                onClick={handleClick}
+                endIcon={<KeyboardArrowDown />}
+                color="inherit"
+              >
+                {user.username}
               </Button>
+
+              <Menu
+                id="user-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+              >
+                <MenuItem component={Link} to="/orders">
+                  Orders
+                </MenuItem>
+                <MenuItem onClick={() => dispatch(logout())}>Çıkış</MenuItem>
+              </Menu>
             </>
           ) : (
             <>

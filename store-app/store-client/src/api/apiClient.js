@@ -1,16 +1,8 @@
 import axios from "axios";
 import { toast } from "react-toastify";
-import { router } from "../App";
-import { store } from "../redux/store/store";
 
 axios.defaults.baseURL = "http://localhost:5000/";
 axios.defaults.withCredentials = true;
-
-axios.interceptors.request.use((request) => {
-  const token = store.getState().account.user?.token;
-  if (token) request.headers.Authorization = `Bearer ${token}`;
-  return request;
-});
 
 axios.interceptors.response.use(
   (response) => {
@@ -39,12 +31,10 @@ axios.interceptors.response.use(
         }
         break;
       case 404:
-        router.navigate("/errors/not-found");
+        toast.error("Sayfa bulunamadı");
         break;
       case 500:
-        router.navigate("/errors/server-error", {
-          state: { error: data, status: status },
-        });
+        toast.error("Sunucu hatası");
         break;
       default:
         break;
@@ -54,11 +44,28 @@ axios.interceptors.response.use(
   }
 );
 
+const getAuthHeaders = () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  return user?.token ? { Authorization: `Bearer ${user.token}` } : {};
+};
+
 const methods = {
-  get: (url) => axios.get(url).then((response) => response.data),
-  post: (url, body) => axios.post(url, body).then((response) => response.data),
-  put: (url, body) => axios.put(url, body).then((response) => response.data),
-  delete: (url) => axios.delete(url).then((response) => response.data),
+  get: (url) =>
+    axios
+      .get(url, { headers: getAuthHeaders() })
+      .then((response) => response.data),
+  post: (url, body) =>
+    axios
+      .post(url, body, { headers: getAuthHeaders() })
+      .then((response) => response.data),
+  put: (url, body) =>
+    axios
+      .put(url, body, { headers: getAuthHeaders() })
+      .then((response) => response.data),
+  delete: (url) =>
+    axios
+      .delete(url, { headers: getAuthHeaders() })
+      .then((response) => response.data),
 };
 
 const products = {
@@ -92,11 +99,18 @@ const account = {
   getUser: () => methods.get("users/getUser"),
 };
 
+const orders = {
+  getOrders: () => methods.get("orders"),
+  getOrder: (id) => methods.get(`orders/${id}`),
+  createOrder: (formData) => methods.post("orders", formData),
+};
+
 const requests = {
   products,
   errors,
   cart,
   account,
+  orders,
 };
 
 export default requests;

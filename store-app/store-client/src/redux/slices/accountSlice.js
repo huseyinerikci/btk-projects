@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { router } from "../../App";
 import requests from "../../api/apiClient";
 
 const initialState = {
@@ -13,7 +12,6 @@ export const loginUser = createAsyncThunk(
     try {
       const user = await requests.account.login(data);
       localStorage.setItem("user", JSON.stringify(user));
-      router.navigate("/");
       return user;
     } catch (error) {
       return thunkAPI.rejectWithValue({ message });
@@ -26,7 +24,6 @@ export const registerUser = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       await requests.account.register(data);
-      router.navigate("/login");
     } catch (error) {
       console.log(error);
       return thunkAPI.rejectWithValue({ message });
@@ -63,7 +60,6 @@ export const accountSlice = createSlice({
     logout: (state) => {
       state.user = null;
       localStorage.removeItem("user");
-      router.navigate("/login");
     },
   },
   extraReducers: (builder) => {
@@ -95,7 +91,6 @@ export const accountSlice = createSlice({
     builder.addCase(getUser.rejected, (state) => {
       state.user = null;
       localStorage.removeItem("user");
-      router.navigate("/login");
     });
   },
 });
